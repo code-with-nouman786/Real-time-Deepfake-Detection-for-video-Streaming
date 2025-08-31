@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Real-Time Deepfake Detection for Video Streaming</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Real-time deepfake detection for video streaming platforms to instantly identify and block manipulated content.">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: #1e293b;
+      background-color: #f8fafc;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #2563eb;
+      color: white;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+      padding: 1rem 0;
+      transition: all 0.3s ease;
+    }
+
+    .navbar.scrolled {
+      padding: 0.75rem 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      font-size: 1.75rem;
+      color: white;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.2s;
+      position: relative;
+      padding: 0.5rem 0;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.9;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: white;
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-links .login-link {
+      margin-left: 1rem;
+    }
+
+    .nav-links .demo-link {
+      background-color: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.2s;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 10rem 0 6rem;
+      background: linear-gradient(135deg, #0f172a, #2563eb);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: white;
+      color: #1e40af;
+    }
+
+    .btn-primary:hover {
+      background-color: #e2e8f0;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: white;
+      border: 1px solid white;
+    }
+
+    .btn-outline:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-image {
+      margin-top: 4rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Features Section */
+    .section {
+      padding: 6rem 0;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #1e293b;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #64748b;
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      font-size: 1.125rem;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      background-color: #93c5fd;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      color: #2563eb;
+      font-size: 1.75rem;
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #1e293b;
+    }
+
+    .feature-description {
+      color: #64748b;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      background-color: #f1f5f9;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background-color: #2563eb;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-description {
+      color: #64748b;
+    }
+
+    /* Detection Technology Section */
+    .tech-section {
+      background-color: #2563eb;
+      color: white;
+      padding: 4rem 0;
+      text-align: center;
+    }
+
+    .tech-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-description {
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      opacity: 0.9;
+    }
+
+    .tech-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .tech-feature {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .tech-feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: white;
+    }
+
+    .tech-feature-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    /* CTA Section */
+    .cta {
+      background: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 4rem 0;
+      border-radius: 0.75rem;
+      margin: 4rem auto;
+      max-width: 1200px;
+    }
+
+    .cta-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-description {
+      margin-bottom: 2rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: #2563eb;
+      color: white;
+      padding: 4rem 0 2rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 1rem;
+      display: inline-block;
+      text-decoration-line: none;
+    }
+
+    .footer-description {
+      opacity: 0.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: background-color 0.2s;
+    }
+
+    .social-link:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: white;
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 2rem;
+      text-align: center;
+      opacity: 0.7;
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .nav-links {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        right: 0;
+        background: #2563eb;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+        gap: 1.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-150%);
+        transition: transform 0.3s;
+        z-index: 999;
+      }
+
+      .nav-links.active {
+        transform: translateY(0);
+      }
+
+      .nav-links .login-link {
+        margin-left: 0;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .step {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <div class="container nav-container">
+      <a href="home.html" class="logo">
+        <span>Deepfake Detector</span>
+      </a>
+    
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <ul class="nav-links" id="navLinks">
+      <li><a href="{{ url_for('home') }}">Home</a></li>
+      <li><a href="{{ url_for('detection') }}">Detection</a></li>
+      <li><a href="{{ url_for('pricing') }}">Pricing</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact</a></li>
+      <li><a href="{{ url_for('login') }}" class="login-link">Log In</a></li>
+  </ul>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container hero-content">
+    <h1 class="hero-title">Real-Time Deepfake Detection for Video Streaming</h1>
+    <p class="hero-subtitle">Instantly detect and block manipulated content in live streams and video uploads with our high-performance detection system.</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('detection') }}" class="btn btn-primary">Start Detection</a>
+    </div>
+    <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="AI analyzing video content" class="hero-image">
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Streaming Platform Protection</h2>
+    <p class="section-subtitle">Our specialized system detects deepfakes in real-time as content is being streamed or uploaded.</p>
+    
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <h3 class="feature-title">Instant Detection</h3>
+        <p class="feature-description">Analyze video frames in under 50ms with our optimized detection pipeline designed for streaming workflows.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-video"></i>
+        </div>
+        <h3 class="feature-title">Live Stream Protection</h3>
+        <p class="feature-description">Monitor live broadcasts in real-time with our low-latency analysis that won't disrupt viewer experience.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3 class="feature-title">AI-Powered Analysis</h3>
+        <p class="feature-description">Our specialized models detect facial manipulations, synthetic voices, and other deepfake indicators.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Detection Technology Section -->
+<section class="tech-section">
+  <div class="container">
+    <h2 class="tech-title">Advanced Detection Technology</h2>
+    <p class="tech-description">Our system uses multiple detection methods to identify even the most sophisticated deepfakes in video streams:</p>
+    
+    <div class="tech-features">
+      <div class="tech-feature">
+        <div class="tech-feature-icon">
+          <i class="fas fa-eye"></i>
+        </div>
+        <h3 class="tech-feature-title">Facial Micro-Expressions</h3>
+        <p>Detects unnatural facial movements and inconsistencies in emotional expressions</p>
+      </div>
+      
+      <div class="tech-feature">
+        <div class="tech-feature-icon">
+          <i class="fas fa-wave-square"></i>
+        </div>
+        <h3 class="tech-feature-title">Spectral Analysis</h3>
+        <p>Identifies digital artifacts and compression patterns indicative of manipulation</p>
+      </div>
+      
+      <div class="tech-feature">
+        <div class="tech-feature-icon">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h3 class="tech-feature-title">Neural Network Detection</h3>
+        <p>Uses deep learning models trained on millions of real and fake video samples</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section how-it-works">
+  <div class="container">
+    <h2 class="section-title">How Our Detection Works</h2>
+    <p class="section-subtitle">A streamlined process designed specifically for video streaming platforms.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3 class="step-title">Connect Your Stream</h3>
+          <p class="step-description">Point our system to your RTMP, HLS, or other streaming source, or send video uploads directly to our endpoint.</p>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3 class="step-title">Real-Time Analysis</h3>
+          <p class="step-description">Our system analyzes each frame as it arrives, checking for signs of manipulation with minimal latency.</p>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3 class="step-title">Immediate Alerts</h3>
+          <p class="step-description">Receive instant notifications when potential deepfakes are detected, with timestamps and confidence scores.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<div class="container">
+  <section class="cta">
+    <h2 class="cta-title">Protect Your Platform Today</h2>
+    <p class="cta-description">Join leading streaming services using our deepfake detection to maintain trust and authenticity in their content.</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('contact') }}" class="btn btn-primary">Contact Our Team</a>
+      <a href="{{ url_for('pricing') }}" class="btn btn-outline">View Pricing</a>
+    </div>
+  </section>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="footer-logo">Deepfake Detector</a>
+        <p class="footer-description">Real-time deepfake detection for video streaming platforms.</p>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="footer-title">Product</h3>
+        <ul class="footer-links">
+          <li><a href="/features">Features</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/demo">Demo</a></li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 class="footer-title">Resources</h3>
+        <ul class="footer-links">
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/case-studies">Case Studies</a></li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 class="footer-title">Company</h3>
+        <ul class="footer-links">
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 Deepfake Detector. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
